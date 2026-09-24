@@ -1,0 +1,6 @@
+{
+  "name": "剪映工程打包工具",
+  "description": "剪映 Mac 本地工程轻量迁移与安装器 (V3)，精准解析时间线依赖，无损打包核心工程与素材，配套新电脑一键自动安装脚本，零脱机自动入库新机剪映本地草稿库。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

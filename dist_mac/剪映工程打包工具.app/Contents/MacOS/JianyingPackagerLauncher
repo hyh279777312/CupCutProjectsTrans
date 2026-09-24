@@ -1,0 +1,63 @@
+#!/bin/bash
+DIR="$(cd "$(dirname "$0")/../Resources" && pwd)"
+APP_DIR="${DIR}/app"
+PORT=32190
+
+# 寻找系统空闲端口
+while lsof -i:"$PORT" &> /dev/null; do
+    PORT=$((PORT + 1))
+done
+
+# 在后台启动轻量静态文件服务器
+if command -v python3 &> /dev/null; then
+    (cd "$APP_DIR" && python3 -m http.server "$PORT" --bind 127.0.0.1) &
+    SERVER_PID=$!
+elif command -v node &> /dev/null; then
+    node -e "
+      const http = require('http');
+      const fs = require('fs');
+      const path = require('path');
+      const base = '${APP_DIR}';
+      const mimes = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png' };
+      http.createServer((req, res) => {
+        let p = path.join(base, req.url.split('?')[0]);
+        if (fs.existsSync(p) && fs.statSync(p).isDirectory()) p = path.join(p, 'index.html');
+        if (!fs.existsSync(p)) p = path.join(base, 'index.html');
+        const ext = path.extname(p);
+        res.writeHead(200, { 'Content-Type': mimes[ext] || 'application/octet-stream' });
+        fs.createReadStream(p).pipe(res);
+      }).listen(${PORT}, '127.0.0.1');
+    " &
+    SERVER_PID=$!
+fi
+
+# 等待端口响应
+for i in {1..20}; do
+    if curl -s "http://127.0.0.1:${PORT}" &> /dev/null; then
+        break
+    fi
+    sleep 0.2
+done
+
+URL="http://127.0.0.1:${PORT}"
+USER_DATA_DIR="/tmp/jianying_packager_app_runtime"
+
+# 以独立桌面窗口调起（无地址栏、无标签页、原生独立窗口）
+CHROME_APP="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+EDGE_APP="/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"
+BRAVE_APP="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+
+if [ -f "$CHROME_APP" ]; then
+    "$CHROME_APP" --app="$URL" --window-size=1440,920 --user-data-dir="$USER_DATA_DIR" --disable-extensions
+elif [ -f "$EDGE_APP" ]; then
+    "$EDGE_APP" --app="$URL" --window-size=1440,920 --user-data-dir="$USER_DATA_DIR" --disable-extensions
+elif [ -f "$BRAVE_APP" ]; then
+    "$BRAVE_APP" --app="$URL" --window-size=1440,920 --user-data-dir="$USER_DATA_DIR" --disable-extensions
+else
+    open "$URL"
+fi
+
+# 退出时杀掉本地后台轻量服务器
+if [ -n "$SERVER_PID" ]; then
+    kill "$SERVER_PID" 2>/dev/null || true
+fi

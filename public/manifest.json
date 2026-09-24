@@ -1,0 +1,22 @@
+{
+  "name": "剪映工程打包迁移助手 V3",
+  "short_name": "剪映迁移助手",
+  "description": "剪映 Mac 本地工程轻量迁移与安装器 (V3)，精准解析时间线依赖，无损打包核心工程与素材，新电脑一键自动入库与路径自愈",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
